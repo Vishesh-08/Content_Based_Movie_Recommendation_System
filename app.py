@@ -6,17 +6,24 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()  
-API_KEY = os.getenv("TMDB_API_KEY")
+# 'API_KEY = os.getenv("TMDB_API_KEY")'
+
+OMDB_API_KEY = os.getenv("OMDB_API_KEY")
 
 
-def fetch_poster(movie_id):
-    url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={API_KEY}&language=en-US"
+
+def fetch_poster(movie_title):
+    # url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={API_KEY}&language=en-US"
+    movie_title_encoded = requests.utils.quote(movie_title)
+    url = f"http://www.omdbapi.com/?t={movie_title_encoded}&apikey={OMDB_API_KEY}"
     data = requests.get(url)
     data = data.json()
     
     # ✅ Check if the API response contains 'poster_path'
-    if "poster_path" in data and data["poster_path"]:
-        return f"https://image.tmdb.org/t/p/w500/{data['poster_path']}"
+    # if "poster_path" in data and data["poster_path"]:
+    #     return f"https://image.tmdb.org/t/p/w500/{data['poster_path']}"
+    if "Poster" in data and data["Poster"] != "N/A":
+        return data["Poster"]
     
     # ✅ If poster is missing, return a placeholder image
     return "https://upload.wikimedia.org/wikipedia/commons/1/14/Movie_clapper_board.jpg"
@@ -28,8 +35,9 @@ def recommend(movie):
     recommended_movie_posters = []
     for i in distances[1:16]:
         # fetch the movie poster
-        movie_id = movies.iloc[i[0]].movie_id
-        recommended_movie_posters.append(fetch_poster(movie_id))
+        # movie_id = movies.iloc[i[0]].movie_id
+        movie_title = movies.iloc[i[0]].title
+        recommended_movie_posters.append(fetch_poster(movie_title))
         recommended_movie_names.append(movies.iloc[i[0]].title)
 
     return recommended_movie_names,recommended_movie_posters
